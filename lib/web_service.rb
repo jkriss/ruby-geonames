@@ -261,11 +261,18 @@ module Geonames
       options.update(args.last.is_a?(::Hash) ? args.pop : {})
       uri = URI.parse(url)
       req = Net::HTTP::Get.new(uri.path + '?' + uri.query)
-      Net::HTTP.start(uri.host, uri.port) { |http|
+      res = Net::HTTP.start(uri.host, uri.port) { |http|
         http.read_timeout = options[:read_timeout]
         http.open_timeout = options[:open_timeout]
         http.request(req)
       }
+      case res
+      when Net::HTTPSuccess, Net::HTTPRedirection
+        # OK
+      else
+        res.error!
+      end
+      res
     end
 
     def WebService.findNearbyWikipedia( hashes )
